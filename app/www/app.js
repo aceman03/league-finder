@@ -434,6 +434,9 @@ $("settings-form").addEventListener("submit", async (e) => {
 });
 $("open-settings").addEventListener("click", () => showSetup());
 $("app-version").textContent = APP_VERSION;
+$("build-kind").textContent = window.LEAGUE_FINDER_CONFIG?.token
+  ? "Data token built in."
+  : "No data token built in. Install the release from league-data to skip this screen.";
 $("check-update").addEventListener("click", async () => {
   const status = $("update-status");
   status.textContent = "Checking…";

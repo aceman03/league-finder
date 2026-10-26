@@ -1,4 +1,9 @@
-name: Build APK
+name: Build check
+
+# Compile check only. Installable APKs come from the private league-data
+# repo's Build APK workflow, which builds this code with the data token in
+# and signs it with the key installed apps expect. An APK from here would
+# have no token and couldn't update those installs, so none is uploaded.
 
 on:
   push:
@@ -36,9 +41,3 @@ jobs:
       - name: Build debug APK
         working-directory: app/android
         run: ./gradlew --no-daemon assembleDebug
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: league-finder-apk
-          path: app/android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
