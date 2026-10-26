@@ -315,8 +315,9 @@ function showDetail(l, c, miles) {
 //
 // New versions are published as releases (tagged vX.Y.Z, with
 // League-Finder.apk attached) in the same private repo as the data, because
-// the APK carries the data token. The token reads them; installing stays
-// manual since Android always asks before installing an APK.
+// the APK carries the data token. The token reads them, and on Android the
+// UpdateInstaller plugin downloads the APK with it and opens the system
+// installer (Android always asks before installing).
 
 const APP_VERSION = window.LEAGUE_FINDER_VERSION || "0.0.0";
 const CHECK_EVERY_MS = 6 * 60 * 60 * 1000;   // on launch, at most this often
@@ -358,8 +359,32 @@ async function checkForUpdate() {
     version,
     notes: release.body || "",
     downloadUrl: apk?.browser_download_url || release.html_url,
+    assetApiUrl: apk?.url || null,
     pageUrl: release.html_url,
   };
+}
+
+function nativeInstaller() {
+  return window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins?.UpdateInstaller;
+}
+
+// Download the APK inside the app and hand it to Android's installer; fall
+// back to the browser when that isn't possible (e.g. the web version).
+async function installUpdate(update, say) {
+  const installer = nativeInstaller();
+  if (!installer || !update.assetApiUrl) {
+    openExternal(update.downloadUrl);
+    return;
+  }
+  say("Downloading the update…");
+  try {
+    const { status } = await installer.install({ url: update.assetApiUrl, token: settings().token });
+    say(status === "needs-permission"
+      ? "Allow League Finder to install apps in the screen that opened, then come back and tap Download again."
+      : "Follow Android's prompt to install the update.");
+  } catch (err) {
+    say(`${err.message || err}. Try again, or use What's new to download it from GitHub.`);
+  }
 }
 
 // External links leave the app: Capacitor hands non-app URLs to the browser.
@@ -370,14 +395,14 @@ function openExternal(url) {
 function showUpdateBanner(update) {
   const banner = $("update-banner");
   banner.innerHTML = `
-    <span><b>League Finder ${esc(update.version)}</b> is available. You have ${esc(APP_VERSION)}.</span>
+    <span id="update-text"><b>League Finder ${esc(update.version)}</b> is available. You have ${esc(APP_VERSION)}.</span>
     <button class="primary" data-update="download">Download</button>
     <button data-update="notes">What's new</button>
     <button class="icon" data-update="later" aria-label="Not now" title="Not now">×</button>`;
   banner.hidden = false;
   banner.onclick = (e) => {
     const action = e.target.closest("[data-update]")?.dataset.update;
-    if (action === "download") openExternal(update.downloadUrl);
+    if (action === "download") installUpdate(update, (msg) => { $("update-text").textContent = msg; });
     if (action === "notes") openExternal(update.pageUrl);
     if (action === "later") {
       store.set("update-dismissed", update.version);
