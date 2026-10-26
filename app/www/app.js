@@ -38,8 +38,9 @@ function settings() {
   const built = window.LEAGUE_FINDER_CONFIG || {};
   const defaults = { token: "", repo: "aceman03/league-data", path: "data/leagues.json" };
   const saved = store.get("settings");
-  if (saved && saved.token) return saved;
-  return { ...defaults, ...Object.fromEntries(Object.entries(built).filter(([, v]) => v)) };
+  if (saved && saved.token) return { ...saved, builtIn: false };
+  const s = { ...defaults, ...Object.fromEntries(Object.entries(built).filter(([, v]) => v)) };
+  return { ...s, token: String(s.token).trim(), builtIn: !!s.token };
 }
 
 async function fetchDataset(s, etag) {
@@ -81,7 +82,7 @@ async function refresh({ quiet }) {
     useDataset(result.data);
   } catch (err) {
     if (quiet && state.data) return; // keep showing cached data when offline
-    showSetup(err.message);
+    showSetup(s.builtIn ? `The token built into this app didn't work: ${err.message}` : err.message);
   }
 }
 
