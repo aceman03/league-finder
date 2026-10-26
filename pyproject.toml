@@ -2,7 +2,7 @@
 name = "league-finder"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["httpx>=0.27"]
+dependencies = ["httpx>=0.27", "playwright>=1.48"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]

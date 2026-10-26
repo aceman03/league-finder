@@ -1,7 +1,7 @@
 """Command line entry point.
 
     python -m league_finder.runner once [--source bowlero]
-    python -m league_finder.runner loop --every 6h
+    python -m league_finder.runner loop --every 12h
 """
 
 from __future__ import annotations
@@ -55,10 +55,11 @@ def main() -> None:
     p.add_argument("mode", choices=["once", "loop"])
     p.add_argument("--source", choices=sorted(SOURCES), action="append")
     p.add_argument("--db", default="leagues.db")
-    p.add_argument("--every", default="6h", help="loop interval, e.g. 30m, 6h, 1d")
+    p.add_argument("--every", default="12h", help="loop interval, e.g. 30m, 6h, 1d")
     args = p.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     names = args.source or sorted(SOURCES)
 
     if args.mode == "once":
