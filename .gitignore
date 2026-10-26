@@ -1,5 +1,2 @@
 __pycache__/
-*.egg-info/
-.venv/
-.pytest_cache/
-*.db
+node_modules/

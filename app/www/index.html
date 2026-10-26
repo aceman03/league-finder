@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>League Finder</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="bar">
+    <h1>League Finder</h1>
+    <button id="open-settings" class="icon" aria-label="Settings">⚙</button>
+  </header>
+
+  <!-- Shown until data is loaded -->
+  <section id="setup" class="panel" hidden>
+    <h2>Connect your data</h2>
+    <p>League data lives in your private GitHub repo. Paste a fine-grained token
+      with read-only <b>Contents</b> access to that repo. It's stored only on this device.</p>
+    <form id="settings-form">
+      <label>GitHub token
+        <input id="token" type="password" autocomplete="off" placeholder="github_pat_…" required>
+      </label>
+      <label>Repository
+        <input id="repo" type="text" value="aceman03/league-data" required>
+      </label>
+      <label>Data file
+        <input id="path" type="text" value="data/leagues.json" required>
+      </label>
+      <div class="row">
+        <button type="submit" class="primary">Save &amp; load</button>
+        <button type="button" id="close-settings" hidden>Cancel</button>
+      </div>
+      <p id="setup-error" class="error" role="alert"></p>
+    </form>
+  </section>
+
+  <main id="main" hidden>
+    <section class="search">
+      <input id="q" type="search" placeholder="Search name, center, city, state or zip" aria-label="Search">
+      <div class="row wrap">
+        <button id="near-me" type="button">📍 Near me</button>
+        <select id="radius" aria-label="Distance">
+          <option value="10">10 mi</option>
+          <option value="25" selected>25 mi</option>
+          <option value="50">50 mi</option>
+          <option value="100">100 mi</option>
+          <option value="0">Any distance</option>
+        </select>
+        <select id="kind" aria-label="Type">
+          <option value="league" selected>Leagues</option>
+          <option value="tournament">Tournaments</option>
+          <option value="">Leagues &amp; tournaments</option>
+        </select>
+      </div>
+      <div class="days" role="group" aria-label="Days">
+        <button type="button" data-day="mon">Mon</button><button type="button" data-day="tue">Tue</button><button type="button" data-day="wed">Wed</button><button type="button" data-day="thu">Thu</button><button type="button" data-day="fri">Fri</button><button type="button" data-day="sat">Sat</button><button type="button" data-day="sun">Sun</button>
+      </div>
+      <details id="more-filters">
+        <summary>More filters</summary>
+        <div class="grid">
+          <label>Format <select id="format"><option value="">Any</option></select></label>
+          <label>Who <select id="audience"><option value="">Anyone</option></select></label>
+          <label>Skill <select id="skill">
+            <option value="">Any</option>
+            <option value="beginner">Beginner</option>
+            <option value="novice">Novice</option>
+            <option value="experienced">Experienced</option>
+            <option value="advanced">Advanced</option>
+          </select></label>
+          <label>Team size <select id="team-size">
+            <option value="">Any</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5+</option>
+          </select></label>
+          <label>Starts <select id="starts">
+            <option value="">Any time</option>
+            <option value="upcoming">Not started yet</option>
+            <option value="30">Within 30 days</option>
+          </select></label>
+          <label>Time of day <select id="time">
+            <option value="">Any</option>
+            <option value="morning">Before noon</option>
+            <option value="afternoon">Noon–5pm</option>
+            <option value="evening">After 5pm</option>
+          </select></label>
+        </div>
+        <button type="button" id="reset">Reset filters</button>
+      </details>
+    </section>
+
+    <p id="status" class="status" aria-live="polite"></p>
+    <ul id="results" class="results"></ul>
+    <button id="more" type="button" hidden>Show more</button>
+    <p class="foot" id="data-info"></p>
+  </main>
+
+  <dialog id="detail">
+    <article id="detail-body"></article>
+    <form method="dialog"><button class="primary">Close</button></form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

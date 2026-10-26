@@ -1,0 +1,17 @@
+{
+  "name": "league-finder-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "League Finder: search and filter bowling leagues",
+  "scripts": {
+    "sync": "cap sync android",
+    "serve": "python3 -m http.server 8080 --directory www"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}

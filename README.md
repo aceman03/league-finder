@@ -1,32 +1,32 @@
-# league-finder
+# League Finder
 
-Personal tool that collects every bowling league listed on Bowlero / Lucky
-Strike / AMF (www.bowlero.com) into one local database so they can be
-searched and filtered properly. Not for redistribution.
+Android app for searching and filtering bowling leagues by location, day,
+time, format, skill level and more.
 
-## How it works
+The app contains no league data. On first launch it asks for a GitHub token
+and downloads the dataset from a private repo you control (default
+`aceman03/league-data`, file `data/leagues.json`). Data and settings stay on
+the device; the app re-checks for new data each time it opens and keeps
+working offline with the last copy.
 
-- **Centers:** the full center list is read from the public
-  `/location-finder` page.
-- **Leagues:** the site's league finder is a browser app, so a headless
-  browser opens it once per area (one center's zip, 100-mile radius) and
-  records the league data the page itself loads. Searches continue until
-  every bowling center is covered (~360 centers).
-- **Accuracy:** `Store.sync` applies each complete pass in one transaction:
-  new leagues are added, changed ones updated, and ones no longer listed
-  marked inactive. A failed or partial pass changes nothing; failures are
-  logged in `scrape_runs`.
-- **Politeness:** one page at a time with a pause between searches,
-  robots.txt honored (`/join-league/` is never fetched), images and fonts
-  skipped.
+## Install
 
-## Running
+1. Open the **Actions** tab → **Build APK** → latest successful run, and
+   download the `league-finder-apk` artifact (a zip containing
+   `app-debug.apk`).
+2. Copy the APK to your phone and open it. Android will ask you to allow
+   installing from that source.
+3. Create a fine-grained token at GitHub → Settings → Developer settings →
+   Personal access tokens → Fine-grained tokens: **Only select
+   repositories** → your data repo, **Repository permissions → Contents:
+   Read-only**. Paste it into the app.
 
-    pip install -e '.[dev]'
-    playwright install chromium                         # once
-    python -m league_finder.runner once                 # one full pass
-    python -m league_finder.runner loop --every 12h     # keep refreshing
-    pytest
+## Develop
 
-Data lands in `leagues.db` (SQLite). Each league links to its sign-up page
-on bowlero.com.
+    cd app
+    npm install
+    npm run serve          # web UI at http://localhost:8080
+    npx cap sync android   # copy www/ into the Android project
+
+The UI is plain HTML/CSS/JS in `app/www/`; `app/android/` is the Capacitor
+Android project. Pushes that touch `app/` build a new APK in CI.
