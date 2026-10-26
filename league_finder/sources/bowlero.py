@@ -153,24 +153,22 @@ class BowleroSource(Source):
                     if number in covered:
                         continue
                     center = by_number[number]
-                    # Some zips (e.g. Puerto Rico) geocode elsewhere; fall back
-                    # to "City, State" when the center's own search misses it.
-                    queries = [center.get("zipCode"), f"{center.get('city')}, {center.get('state')}"]
-                    for query in queries:
-                        asked, body = self._search(page, query)
-                        covered |= asked
-                        for league in parse_feed(body, by_number):
-                            if league.source_id not in seen:
-                                seen.add(league.source_id)
-                                yield league
-                        log.info("bowlero: searched %r, %d/%d centers covered, %d leagues",
-                                 query, len(covered & by_number.keys()), len(by_number), len(seen))
-                        time.sleep(self.fetcher.min_interval)
-                        if number in asked:
-                            break
-                    else:
-                        log.warning("bowlero: no search found center %s (%s)", number, center.get("name"))
-                    covered.add(number)
+                    zip_code = center.get("zipCode")
+                    asked, body = self._search(page, zip_code)
+                    if number not in asked:
+                        # The finder can't place some locations (e.g. Puerto Rico)
+                        # and falls back to a default area, so the center is
+                        # unreachable through the site's own search.
+                        log.warning("bowlero: search %s didn't include center %s (%s)",
+                                    zip_code, number, center.get("name"))
+                    covered |= asked | {number}
+                    for league in parse_feed(body, by_number):
+                        if league.source_id not in seen:
+                            seen.add(league.source_id)
+                            yield league
+                    log.info("bowlero: searched %s, %d/%d centers covered, %d leagues",
+                             zip_code, len(covered & by_number.keys()), len(by_number), len(seen))
+                    time.sleep(self.fetcher.min_interval)
             finally:
                 browser.close()
 
@@ -211,7 +209,9 @@ class BowleroSource(Source):
                     lambda r: urlsplit(r.url).path == LEAGUES_FEED and r.request.method == "GET",
                     timeout=self.feed_timeout_ms,
                 ) as info:
-                    page.goto(url, timeout=self.page_timeout_ms)
+                    # Don't wait for the full page load: the page keeps working
+                    # after the feed arrives and Chromium may evict its body.
+                    page.goto(url, wait_until="commit", timeout=self.page_timeout_ms)
                 resp = info.value
                 if resp.status != 200:
                     raise ScrapeError(f"league feed returned {resp.status}")
