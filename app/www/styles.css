@@ -100,3 +100,11 @@ dialog .actions a {
 dialog .actions a.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 dialog form { text-align: right; }
 .desc { white-space: pre-line; }
+
+.update-banner {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 10px 16px; background: var(--chip); border-bottom: 1px solid var(--line);
+}
+.update-banner span { flex: 1 1 200px; }
+.update-banner .icon { font-size: 18px; min-height: 0; padding: 4px 8px; }
+.about { margin-top: 28px; padding-top: 8px; border-top: 1px solid var(--line); }

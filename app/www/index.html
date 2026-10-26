@@ -12,6 +12,7 @@
     <h1>League Finder</h1>
     <button id="open-settings" class="icon" aria-label="Settings">⚙</button>
   </header>
+  <div id="update-banner" class="update-banner" role="status" hidden></div>
 
   <!-- Shown until data is loaded -->
   <section id="setup" class="panel" hidden>
@@ -34,6 +35,12 @@
       </div>
       <p id="setup-error" class="error" role="alert"></p>
     </form>
+    <div class="about">
+      <h2>Updates</h2>
+      <p>League Finder <b id="app-version"></b></p>
+      <button type="button" id="check-update">Check for updates</button>
+      <p id="update-status" class="status" aria-live="polite"></p>
+    </div>
   </section>
 
   <main id="main" hidden>
@@ -101,6 +108,7 @@
     <form method="dialog"><button class="primary">Close</button></form>
   </dialog>
 
+  <script src="version.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>

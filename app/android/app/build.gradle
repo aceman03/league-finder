@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+// App version comes from package.json, like the web app's version.js.
+def appVersion = new groovy.json.JsonSlurper().parse(file("../../package.json")).version
+def appVersionCode = appVersion.tokenize(".").collect { it as int }.inject(0) { code, part -> code * 100 + part }
+
 android {
     namespace = "com.aceman03.leaguefinder"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +11,8 @@ android {
         applicationId "com.aceman03.leaguefinder"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

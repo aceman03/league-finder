@@ -31,7 +31,7 @@ jobs:
       - name: Install and sync web assets
         run: |
           npm ci
-          npx cap sync android
+          npm run sync
 
       - name: Build debug APK
         working-directory: app/android

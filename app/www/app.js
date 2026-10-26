@@ -310,6 +310,91 @@ function showDetail(l, c, miles) {
   $("detail").showModal();
 }
 
+// ---------- updates ----------
+//
+// New versions are published as releases (tagged vX.Y.Z, with
+// League-Finder.apk attached) in the same private repo as the data, because
+// the APK carries the data token. The token reads them; installing stays
+// manual since Android always asks before installing an APK.
+
+const APP_VERSION = window.LEAGUE_FINDER_VERSION || "0.0.0";
+const CHECK_EVERY_MS = 6 * 60 * 60 * 1000;   // on launch, at most this often
+const WATCH_EVERY_MS = 30 * 60 * 1000;       // while the app stays open
+
+// "v0.10.2" -> [0, 10, 2]; compares numerically, so 0.10 > 0.9.
+const versionParts = (v) => String(v).replace(/^v/i, "").split(".").map((n) => parseInt(n, 10) || 0);
+function isNewer(a, b) {
+  const x = versionParts(a), y = versionParts(b);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
+  }
+  return false;
+}
+
+// -> { available, version, notes, downloadUrl, pageUrl }; throws on network/API errors.
+async function checkForUpdate() {
+  const s = settings();
+  if (!s.token) throw new Error("no GitHub token set");
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), 10000);
+  let resp;
+  try {
+    resp = await fetch(`https://api.github.com/repos/${s.repo}/releases/latest`, {
+      headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${s.token}` },
+      cache: "no-store", signal: abort.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+  store.set("update-checked", Date.now());
+  if (resp.status === 404) return { available: false, version: null }; // no releases yet
+  if (!resp.ok) throw new Error(`GitHub answered ${resp.status}`);
+  const release = await resp.json();
+  const version = String(release.tag_name || "").replace(/^v/i, "");
+  const apk = (release.assets || []).find((a) => /\.apk$/i.test(a.name));
+  return {
+    available: isNewer(version, APP_VERSION),
+    version,
+    notes: release.body || "",
+    downloadUrl: apk?.browser_download_url || release.html_url,
+    pageUrl: release.html_url,
+  };
+}
+
+// External links leave the app: Capacitor hands non-app URLs to the browser.
+function openExternal(url) {
+  window.location.href = url;
+}
+
+function showUpdateBanner(update) {
+  const banner = $("update-banner");
+  banner.innerHTML = `
+    <span><b>League Finder ${esc(update.version)}</b> is available. You have ${esc(APP_VERSION)}.</span>
+    <button class="primary" data-update="download">Download</button>
+    <button data-update="notes">What's new</button>
+    <button class="icon" data-update="later" aria-label="Not now" title="Not now">×</button>`;
+  banner.hidden = false;
+  banner.onclick = (e) => {
+    const action = e.target.closest("[data-update]")?.dataset.update;
+    if (action === "download") openExternal(update.downloadUrl);
+    if (action === "notes") openExternal(update.pageUrl);
+    if (action === "later") {
+      store.set("update-dismissed", update.version);
+      banner.hidden = true;
+    }
+  };
+}
+
+async function autoCheck({ force = false } = {}) {
+  if (!force && Date.now() - (store.get("update-checked") || 0) < CHECK_EVERY_MS) return;
+  try {
+    const update = await checkForUpdate();
+    if (update.available && update.version !== store.get("update-dismissed")) showUpdateBanner(update);
+  } catch {
+    // Offline, no token yet, or rate-limited: try again later.
+  }
+}
+
 // ---------- wiring ----------
 
 function rerender() { state.shown = PAGE_SIZE; render(); }
@@ -322,6 +407,24 @@ $("settings-form").addEventListener("submit", async (e) => {
   await refresh({ quiet: false });
 });
 $("open-settings").addEventListener("click", () => showSetup());
+$("app-version").textContent = APP_VERSION;
+$("check-update").addEventListener("click", async () => {
+  const status = $("update-status");
+  status.textContent = "Checking…";
+  try {
+    const update = await checkForUpdate();
+    if (update.available) {
+      status.textContent = `Version ${update.version} is available.`;
+      showUpdateBanner(update);
+    } else {
+      status.textContent = update.version
+        ? `You're up to date (latest is ${update.version}).`
+        : "No releases published yet.";
+    }
+  } catch (err) {
+    status.textContent = `Couldn't check: ${err.message}. Are you online?`;
+  }
+});
 $("close-settings").addEventListener("click", () => { $("setup").hidden = true; $("main").hidden = false; });
 
 for (const id of FILTER_IDS) $(id).addEventListener(id === "q" ? "input" : "change", rerender);
@@ -353,4 +456,6 @@ $("near-me").addEventListener("click", () => {
   const cached = store.get("dataset");
   if (cached) useDataset(cached);
   refresh({ quiet: true });
+  autoCheck();
+  setInterval(() => autoCheck({ force: true }), WATCH_EVERY_MS);
 })();

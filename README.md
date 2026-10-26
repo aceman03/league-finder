@@ -29,6 +29,23 @@ it. Android will ask you to allow installing from that source.
 A token entered in the app overrides the built-in one, so an expired
 built-in token can be replaced without reinstalling.
 
+## Updates
+
+The app checks for a newer release on launch (at most every 6 hours), every
+30 minutes while open, and from **Settings > Check for updates**. Releases
+live in the private data repo (`aceman03/league-data`), since those APKs
+carry the data token. When one is newer, a banner offers **Download**
+(opens the APK on github.com, so the phone's browser must be signed in to
+GitHub) and **What's new**. Android asks before installing.
+
+To ship a version:
+
+1. Bump `"version"` in `app/package.json`. It flows into `www/version.js`
+   (`npm run version`, also run by `npm run sync`) and the Android
+   `versionName`/`versionCode`.
+2. Push, then run **Build APK** in `aceman03/league-data`. It publishes
+   release `vX.Y.Z` with `League-Finder.apk` attached.
+
 ## Develop
 
     cd app
