@@ -11,15 +11,23 @@ working offline with the last copy.
 
 ## Install
 
-1. Open the **Actions** tab → **Build APK** → latest successful run, and
-   download the `league-finder-apk` artifact (a zip containing
-   `app-debug.apk`).
-2. Copy the APK to your phone and open it. Android will ask you to allow
-   installing from that source.
-3. Create a fine-grained token at GitHub → Settings → Developer settings →
-   Personal access tokens → Fine-grained tokens: **Only select
-   repositories** → your data repo, **Repository permissions → Contents:
-   Read-only**. Paste it into the app.
+**With the token built in (recommended):** build the APK from the private
+data repo: `aceman03/league-data` > Actions > **Build APK** > Run
+workflow, then download the `league-finder-apk` artifact. Installs from that
+build load data without asking for a token. See that repo's README for the
+one-time secret setup.
+
+**Without a built-in token:** this repo's Actions > **Build APK** artifact
+asks for a token on first launch. Create a fine-grained token at GitHub >
+Settings > Developer settings > Personal access tokens > Fine-grained
+tokens: **Only select repositories** > your data repo, **Repository
+permissions > Contents: Read-only**. Paste it into the app.
+
+Either way: unzip the artifact, copy `app-debug.apk` to your phone and open
+it. Android will ask you to allow installing from that source.
+
+A token entered in the app overrides the built-in one, so an expired
+built-in token can be replaced without reinstalling.
 
 ## Develop
 

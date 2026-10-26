@@ -33,8 +33,13 @@ const state = {
 
 // ---------- data loading ----------
 
+// Settings entered in the app win; otherwise use what the build baked in.
 function settings() {
-  return store.get("settings", { token: "", repo: "aceman03/league-data", path: "data/leagues.json" });
+  const built = window.LEAGUE_FINDER_CONFIG || {};
+  const defaults = { token: "", repo: "aceman03/league-data", path: "data/leagues.json" };
+  const saved = store.get("settings");
+  if (saved && saved.token) return saved;
+  return { ...defaults, ...Object.fromEntries(Object.entries(built).filter(([, v]) => v)) };
 }
 
 async function fetchDataset(s, etag) {
