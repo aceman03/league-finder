@@ -34,9 +34,10 @@ built-in token can be replaced without reinstalling.
 The app checks for a newer release on launch (at most every 6 hours), every
 30 minutes while open, and from **Settings > Check for updates**. Releases
 live in the private data repo (`aceman03/league-data`), since those APKs
-carry the data token. When one is newer, a banner offers **Download**
-(opens the APK on github.com, so the phone's browser must be signed in to
-GitHub) and **What's new**. Android asks before installing.
+carry the data token. When one is newer, a banner offers **Download** and
+**What's new**. Download fetches the APK inside the app with the data token
+(no browser or GitHub sign-in) and opens Android's installer; the first time,
+Android asks to allow installing apps from League Finder.
 
 To ship a version:
 
